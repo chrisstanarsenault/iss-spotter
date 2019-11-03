@@ -30,4 +30,61 @@ const fetchMyIP = cb => {
   })
 }
 
-module.exports = {fetchMyIP};
+const fetchCoordsByIP = function(ip, cb) {
+  request(`https://ipvigilante.com/${ip}`, (error, response, body) => {
+    if (error) {
+      cb(error, null);
+      return;
+    }
+
+    if (response.statusCode !== 200) {
+      cb(Error(`Status Code ${response.statusCode} when fetching Coordinates for IP: ${body}`), null);
+      return;
+    }
+
+
+    const {latitude, longitude} = JSON.parse(body).data
+    cb(null, {latitude, longitude})
+  });
+}
+
+const fetchISSFlyOverTimes = (coords, cb) => {
+  request(`http://api.open-notify.org/iss-pass.json?lat=${coords.latitude}&lon=${coords.longitude}`, (error, response, body) => {
+    if (error) {
+      cb(error, null);
+      return
+    }
+
+    if (response.statusCode !== 200) {
+      cb(Error(`Status Code ${response.statusCode} when fetching Coords for passover: ${body}`), null);
+      return;
+    }
+
+    const data = JSON.parse(body).response;
+    cb(null, data)
+  })
+}
+
+const nextISSTimesForMyLocation = cb => {
+  fetchMyIP((error, ip) => {
+    if (error) {
+      return cb(error, null);
+    }
+
+    fetchCoordsByIP(ip, (error, loc) => {
+      if (error) {
+        return cb(error, null);
+      }
+
+      fetchISSFlyOverTimes(loc, (error, nextPasses) => {
+        if (error) {
+          return cb(error, null);
+        }
+
+        cb(null, nextPasses);
+      });
+    });
+  });
+}
+
+module.exports = { fetchMyIP, fetchCoordsByIP, fetchISSFlyOverTimes, nextISSTimesForMyLocation };
