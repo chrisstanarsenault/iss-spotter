@@ -27,7 +27,7 @@ const { fetchMyIP, fetchCoordsByIP, fetchISSFlyOverTimes, nextISSTimesForMyLocat
 //   console.log('It worked! Returned flyover times:', data);
 // })
 
-const printPassTimes = function (passTimes) {
+const printPassTimes = passTimes => {
   for (const pass of passTimes) {
     const datetime = new Date(0);
     datetime.setUTCSeconds(pass.risetime);
@@ -42,3 +42,5 @@ nextISSTimesForMyLocation((error, passTimes) => {
   }
   printPassTimes(passTimes)
 });
+
+module.exports = { printPassTimes };
